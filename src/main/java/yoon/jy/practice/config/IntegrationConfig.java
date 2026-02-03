@@ -31,7 +31,7 @@ public class IntegrationConfig {
     ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
     executor.setCorePoolSize(1);
     executor.setMaxPoolSize(1);
-    executor.setQueueCapacity(50);
+    executor.setQueueCapacity(10);
     executor.setThreadNamePrefix("inference-");
     executor.initialize();
     return executor;
@@ -41,8 +41,9 @@ public class IntegrationConfig {
   @Bean
   public Executor logExecutor() {
     ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
-    executor.setCorePoolSize(3);
-    executor.setMaxPoolSize(3);
+    executor.setCorePoolSize(5);
+    executor.setMaxPoolSize(10);
+    executor.setQueueCapacity(10);
     executor.setThreadNamePrefix("log-db-");
     executor.initialize();
     return executor;
@@ -53,7 +54,7 @@ public class IntegrationConfig {
   public PollerMetadata defaultPoller() {
     PollerMetadata poller = new PollerMetadata();
     poller.setMaxMessagesPerPoll(3);  // 기본: 10개
-    poller.setTrigger(new PeriodicTrigger(Duration.ofMillis(500)));  // 기본: 1초
+    poller.setTrigger(new PeriodicTrigger(Duration.ofMillis(1000)));  // 기본: 1초
     return poller;
   }
 }

@@ -722,3 +722,50 @@ ExecutorChannel:
 - 완벽한 이벤트 기반이 필요하면 Blocking Queue 방식 고려
 
 이 학습을 통해 Spring Integration의 강력함과 유연성을 이해할 수 있었고, 실제 프로덕션 환경에서 발생할 수 있는 병목과 해결 방안까지 고민해볼 수 있었습니다.
+
+
+---
+
+## 추가 연구
+
+### (1) `@Poller(fixedDelay = "10"..)`
+
+이 옵션은 10ms에 한 번씩 poll 작업이 스케줄링이 되도록 합니다. 이 작업을 할당받은 Worker Thread는 메시지를 처리하는 작업을 하게 됩니다. 
+중요한 것은, 이 스케줄링 작업은 `TaskExecutor` 내부의 `작업 큐`에 쌓이게 된다는 것입니다.
+
+이 옵션을 사용한 후 서버를 동작시키니 아래와 같은 에러 로그가 발생했습니다.
+```text
+2026-02-03T14:13:21.702+09:00 ERROR 25236 --- [practice] [   scheduling-1] o.s.s.s.TaskUtils$LoggingErrorHandler    : Unexpected error occurred in scheduled task
+
+org.springframework.core.task.TaskRejectedException: ExecutorService in active state did not accept task: org.springframework.integration.util.ErrorHandlingTaskExecutor$$Lambda/0x0000022d818be840@5f28e677
+	at org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor.execute(ThreadPoolTaskExecutor.java:391) ~[spring-context-6.2.15.jar:6.2.15]
+	at org.springframework.integration.util.ErrorHandlingTaskExecutor.execute(ErrorHandlingTaskExecutor.java:62) ~[spring-integration-core-6.5.6.jar:6.5.6]
+	at org.springframework.integration.endpoint.AbstractPollingEndpoint.lambda$createPoller$5(AbstractPollingEndpoint.java:349) ~[spring-integration-core-6.5.6.jar:6.5.6]
+	at org.springframework.scheduling.support.DelegatingErrorHandlingRunnable.run(DelegatingErrorHandlingRunnable.java:54) ~[spring-context-6.2.15.jar:6.2.15]
+	at org.springframework.scheduling.concurrent.ReschedulingRunnable.run(ReschedulingRunnable.java:96) ~[spring-context-6.2.15.jar:6.2.15]
+	at java.base/java.util.concurrent.Executors$RunnableAdapter.call(Executors.java:572) ~[na:na]
+	at java.base/java.util.concurrent.FutureTask.run$$$capture(FutureTask.java:317) ~[na:na]
+	at java.base/java.util.concurrent.FutureTask.run(FutureTask.java) ~[na:na]
+	at java.base/java.util.concurrent.ScheduledThreadPoolExecutor$ScheduledFutureTask.run(ScheduledThreadPoolExecutor.java:304) ~[na:na]
+	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1144) ~[na:na]
+	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:642) ~[na:na]
+	at java.base/java.lang.Thread.run(Thread.java:1583) ~[na:na]
+Caused by: java.util.concurrent.RejectedExecutionException: Task org.springframework.integration.util.ErrorHandlingTaskExecutor$$Lambda/0x0000022d818be840@5f28e677 rejected from org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor$1@6055e899[Running, pool size = 1, active threads = 1, queued tasks = 50, completed tasks = 0]
+	at java.base/java.util.concurrent.ThreadPoolExecutor$AbortPolicy.rejectedExecution(ThreadPoolExecutor.java:2081) ~[na:na]
+	at java.base/java.util.concurrent.ThreadPoolExecutor.reject(ThreadPoolExecutor.java:841) ~[na:na]
+	at java.base/java.util.concurrent.ThreadPoolExecutor.execute(ThreadPoolExecutor.java:1376) ~[na:na]
+	at org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor$1.execute(ThreadPoolTaskExecutor.java:295) ~[spring-context-6.2.15.jar:6.2.15]
+	at org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor.execute(ThreadPoolTaskExecutor.java:388) ~[spring-context-6.2.15.jar:6.2.15]
+	... 11 common frames omitted
+```
+
+로그를 보면 MessageChannel이 아닌 ThreadPoolTaskExecutor의 queue가 가득 찼음을 확인할 수 있습니다.
+제 경우에는, 10ms마다 작업 큐에 작업을 넣는데, 그 속도가 Poller 속도보다 더 빨라 작업 큐의 범위를 넘어가서 큐가 터지게 된 것입니다.
+
+> 때문에 Worker Thread의 작업 속도보다 작업 큐에 쌓는 주기를 무조건 더 느리게 해야 됩니다.
+
+그렇다고 작업 큐의 크기를 늘리는 것은 임시방편일 뿐입니다. 오히려 작업 큐의 크기가 작아서 빠르게 문제를 인식할 수 있는 상황이 더 나을수도 있겠습니다.
+이는 작업에 따라 주기가 달라져야 하는 부분입니다. 관리 포인트로써 상당히 까다로운 부분이 되겠습니다.
+
+#### Spring Integration의 Thread 모델
+![img.png](img.png)
