@@ -1,3 +1,6 @@
 spring:
   application:
     name: practice
+  output:
+    ansi:
+      enabled: ALWAYS
