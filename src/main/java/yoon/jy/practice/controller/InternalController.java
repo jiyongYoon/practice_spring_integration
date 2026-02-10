@@ -8,12 +8,12 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import yoon.jy.practice.dto.TimeIntervalDto;
 import yoon.jy.practice.model.MessageType;
 import yoon.jy.practice.model.RobotMessage;
+import yoon.jy.practice.repository.IdMemoryRepository;
 import yoon.jy.practice.service.InternalService;
 import yoon.jy.practice.service.RobotMessageSender;
-import yoon.jy.practice.repository.IdMemoryRepository;
-import yoon.jy.practice.repository.LogRepository;
 
 @RestController
 @RequestMapping("/api/internal")
@@ -28,7 +28,7 @@ public class InternalController {
   @GetMapping("/coordinates")
   public void requestCoordinates(@RequestParam String robotId) {
     LocalDateTime receiveAt = LocalDateTime.now();
-    Integer traceId = idMemoryRepository.generateTraceId();
+    Long traceId = idMemoryRepository.generateTraceId();
     log.info("[Internal] 좌표 요청 명령 전달 수신: robotId={}, traceId={}, receiveAt={}",
         robotId, traceId, receiveAt);
 
@@ -48,5 +48,10 @@ public class InternalController {
   @GetMapping("/logs")
   public List<RobotMessage> getAllLogs(@RequestParam String robotId) {
     return internalService.findAllLogs(robotId);
+  }
+
+  @GetMapping("/logs/timeInterval")
+  public TimeIntervalDto getTimeInterval(@RequestParam String robotId) {
+    return internalService.getTimeInterval(robotId);
   }
 }

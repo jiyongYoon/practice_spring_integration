@@ -7,6 +7,8 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import yoon.jy.practice.dto.CoordinatesDto;
+import yoon.jy.practice.dto.InferenceResDto;
+import yoon.jy.practice.dto.InferenceType;
 
 @RestController
 @RequestMapping("/ai")
@@ -17,23 +19,26 @@ public class AiModelServerController {
   private final Random random = new Random();
 
   @GetMapping("/coordinates")
-  public CoordinatesDto inference() {
+  public InferenceResDto inference() {
     log.info("                                               [AI] 추론 요청 수신!");
-//    try {
-//      Thread.sleep(2000);
-//    } catch (InterruptedException e) {
-//      log.warn("Thread sleep 중 인터럽트가 발생했습니다.");
-//      Thread.currentThread().interrupt();
-//    }
+    try {
+      Thread.sleep(1000);
+    } catch (InterruptedException e) {
+      log.warn("Thread sleep 중 인터럽트가 발생했습니다.");
+      Thread.currentThread().interrupt();
+    }
     log.info("                                               [AI] 추론이 완료되었습니다.");
 
-    return CoordinatesDto.builder()
-        .x(getDouble())
-        .y(getDouble())
-        .z(getDouble())
-        .rx(getDouble())
-        .ry(getDouble())
-        .rz(getDouble())
+    return InferenceResDto.builder()
+        .status(InferenceType.DONE)
+        .coordinatesDto(CoordinatesDto.builder()
+          .x(getDouble())
+          .y(getDouble())
+          .z(getDouble())
+          .rx(getDouble())
+          .ry(getDouble())
+          .rz(getDouble())
+          .build())
         .build();
   }
 

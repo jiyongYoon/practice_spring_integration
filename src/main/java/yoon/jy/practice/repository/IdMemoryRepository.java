@@ -1,14 +1,14 @@
 package yoon.jy.practice.repository;
 
-import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
 import org.springframework.stereotype.Component;
 
 @Component
 public class IdMemoryRepository {
 
-  private final AtomicInteger traceId = new AtomicInteger(0);
+  private final AtomicLong traceId = new AtomicLong(0);
 
-  public Integer generateTraceId() {
+  public Long generateTraceId() {
     return traceId.incrementAndGet();
   }
 }

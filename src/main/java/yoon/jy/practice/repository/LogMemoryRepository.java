@@ -5,10 +5,10 @@ import java.util.Comparator;
 import java.util.LinkedList;
 import java.util.List;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Repository;
 import yoon.jy.practice.model.RobotMessage;
 
-@Component
+//@Repository
 @Slf4j
 public class LogMemoryRepository implements LogRepository {
 
@@ -48,7 +48,7 @@ public class LogMemoryRepository implements LogRepository {
   public List<RobotMessage> findAllByRobotId(String robotId) {
     return robotMessageList.stream()
         .filter(robotMessage -> robotMessage.getRobotId().equals(robotId))
-        .sorted(Comparator.comparingInt(RobotMessage::getTraceId))
+        .sorted(Comparator.comparingLong(RobotMessage::getTraceId))
         .toList();
   }
 }

@@ -7,6 +7,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
 import yoon.jy.practice.dto.CoordinatesDto;
+import yoon.jy.practice.dto.InferenceResDto;
 
 @Getter
 @NoArgsConstructor
@@ -17,14 +18,14 @@ public class RobotMessage {
 
   private MessageType type;
   private String robotId;
-  private Integer traceId;
-  private CoordinatesDto payload;
+  private Long traceId;
+  private InferenceResDto payload;
   private LocalDateTime receiveAt;
   private LocalDateTime sendAt;
   private LocalDateTime saveAt;
 
-  public void updateCoordinates(CoordinatesDto coordinatesDto, LocalDateTime sendAt) {
-    this.payload = coordinatesDto;
+  public void updateCoordinates(InferenceResDto inferenceResDto, LocalDateTime sendAt) {
+    this.payload = inferenceResDto;
     this.sendAt = sendAt;
   }
 

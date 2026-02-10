@@ -7,6 +7,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import yoon.jy.practice.dto.InferenceResDto;
+import yoon.jy.practice.dto.InferenceType;
 
 @RestController
 @RequestMapping("/edge")
@@ -17,7 +18,7 @@ public class EdgeGatewayController {
   @PostMapping("/coordinates")
   public String receiveInferenceResDto(@RequestBody InferenceResDto inferenceResDto) {
     String message = String.format("[Edge Gateway] 수신 완료! status=%s, coordinates=%s",
-        inferenceResDto.status().toString(), inferenceResDto.coordinatesDto().toString());
+        inferenceResDto.status().toString(), inferenceResDto.status().equals(InferenceType.DONE) ? inferenceResDto.coordinatesDto().toString() : null);
     log.info("                                               {}", message);
     return message;
   }
